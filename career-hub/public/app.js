@@ -21,12 +21,12 @@ document.querySelectorAll('.dropzone').forEach(zone => {
 
   zone.addEventListener('click', () => input.click());
 
-  ['dragenter', 'dragover'].forEach(e => {
-    zone.addEventListener(e, ev => { ev.preventDefault(); zone.classList.add('drag-over'); });
-  });
-  ['dragleave', 'drop'].forEach(e => {
-    zone.addEventListener(e, ev => { ev.preventDefault(); zone.classList.remove('drag-over'); });
-  });
+  ['dragenter', 'dragover'].forEach(e =>
+    zone.addEventListener(e, ev => { ev.preventDefault(); zone.classList.add('drag-over'); })
+  );
+  ['dragleave', 'drop'].forEach(e =>
+    zone.addEventListener(e, ev => { ev.preventDefault(); zone.classList.remove('drag-over'); })
+  );
   zone.addEventListener('drop', ev => {
     const file = ev.dataTransfer.files[0];
     if (file) { input.files = ev.dataTransfer.files; showFileName(file.name, nameEl); }
@@ -37,19 +37,19 @@ document.querySelectorAll('.dropzone').forEach(zone => {
 });
 
 function showFileName(name, el) {
-  el.textContent = '✅ ' + name;
+  el.textContent = name;
 }
 
 // ── SSE streaming helper ─────────────────────────────────────────────────────
 
-async function streamRequest(endpoint, formData, outputId, actionsId) {
+async function streamRequest(endpoint, body, outputId, actionsId, isJson = false) {
   const out     = document.getElementById(outputId);
   const actions = document.getElementById(actionsId);
 
   out.innerHTML = `
     <div class="thinking-indicator">
       <div class="thinking-dots"><span></span><span></span><span></span></div>
-      Claude is analyzing — this may take 15–30 seconds…
+      Analyzing — this usually takes 15–30 seconds
     </div>`;
   if (actions) actions.style.display = 'none';
 
@@ -57,7 +57,11 @@ async function streamRequest(endpoint, formData, outputId, actionsId) {
   let firstText = false;
 
   try {
-    const response = await fetch(endpoint, { method: 'POST', body: formData });
+    const fetchOpts = isJson
+      ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+      : { method: 'POST', body };
+
+    const response = await fetch(endpoint, fetchOpts);
     if (!response.ok) {
       const err = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
       throw new Error(err.error || 'Request failed');
@@ -85,10 +89,7 @@ async function streamRequest(endpoint, formData, outputId, actionsId) {
 
         if (msg.error) throw new Error(msg.error);
         if (msg.text) {
-          if (!firstText) {
-            out.innerHTML = '';
-            firstText = true;
-          }
+          if (!firstText) { out.innerHTML = ''; firstText = true; }
           fullText += msg.text;
           out.innerHTML = `<div class="md-output">${marked.parse(fullText)}</div>`;
           out.scrollTop = out.scrollHeight;
@@ -96,7 +97,7 @@ async function streamRequest(endpoint, formData, outputId, actionsId) {
       }
     }
   } catch (err) {
-    out.innerHTML = `<div class="error-box">⚠️ ${err.message}</div>`;
+    out.innerHTML = `<div class="error-box">${err.message}</div>`;
     return null;
   }
 
@@ -119,16 +120,16 @@ async function runReview() {
   fd.append('jobDescription', jd);
 
   btn.disabled = true;
-  btn.innerHTML = '<span class="btn-icon">⏳</span> Analyzing…';
+  btn.textContent = 'Analyzing...';
   try {
     await streamRequest('/api/review', fd, 'review-output', 'review-actions');
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<span class="btn-icon">🎯</span> Analyze My Resume';
+    btn.textContent = 'Analyze My Resume';
   }
 }
 
-// ── Resume Redline ───────────────────────────────────────────────────────────
+// ── Resume Edits ─────────────────────────────────────────────────────────────
 
 async function runRedline() {
   const fileInput = document.getElementById('redline-file');
@@ -143,29 +144,32 @@ async function runRedline() {
   fd.append('jobDescription', jd);
 
   btn.disabled = true;
-  btn.innerHTML = '<span class="btn-icon">⏳</span> Rewriting…';
+  btn.textContent = 'Editing...';
   try {
     await streamRequest('/api/redline', fd, 'redline-output', 'redline-actions');
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<span class="btn-icon">✏️</span> Redline My Resume';
+    btn.textContent = 'Edit My Resume';
   }
 }
 
-// ── Job Finder ───────────────────────────────────────────────────────────────
+// ── Open Roles ───────────────────────────────────────────────────────────────
 
-let jobsLoaded = false;
+let jobsLoaded    = false;
+let currentCat    = 'finance';
+let autoRefreshId = null;
 
 async function loadJobs(category, btnEl) {
-  // Update active tab
   document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
-  if (btnEl) btnEl.classList.add('active');
-  else document.querySelector(`[data-cat="${category}"]`)?.classList.add('active');
+  const activeBtn = btnEl || document.querySelector(`[data-cat="${category}"]`);
+  if (activeBtn) activeBtn.classList.add('active');
 
-  const grid    = document.getElementById('jobs-grid');
-  const live    = document.getElementById('live-jobs');
+  currentCat = category;
+  const grid      = document.getElementById('jobs-grid');
+  const live      = document.getElementById('live-jobs');
   const liveLabel = document.getElementById('live-label');
-  grid.innerHTML = '<div class="jobs-loading">Loading…</div>';
+
+  grid.innerHTML = '<div class="jobs-loading">Loading...</div>';
   live.innerHTML = '';
   liveLabel.style.display = 'none';
 
@@ -174,42 +178,62 @@ async function loadJobs(category, btnEl) {
     const data = await res.json();
     jobsLoaded = true;
 
-    // Search link cards
     grid.innerHTML = data.linkedinLinks.map(s => `
       <div class="job-card">
         <div class="job-card-label">${s.label}</div>
         <div class="job-card-links">
-          <a class="job-link job-link-li" href="${s.linkedin}" target="_blank" rel="noopener">
-            in LinkedIn ↗
-          </a>
-          <a class="job-link job-link-in" href="${s.indeed}" target="_blank" rel="noopener">
-            Indeed ↗
-          </a>
+          <a class="job-link job-link-li" href="${s.linkedin}" target="_blank" rel="noopener">LinkedIn</a>
+          <a class="job-link job-link-in" href="${s.indeed}" target="_blank" rel="noopener">Indeed</a>
         </div>
       </div>`).join('');
 
-    // Live jobs from Indeed RSS
     if (data.liveJobs && data.liveJobs.length > 0) {
       liveLabel.style.display = 'block';
       live.innerHTML = data.liveJobs.map(j => {
-        const date = j.date ? new Date(j.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+        const date = j.date
+          ? new Date(j.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          : '';
         return `
           <div class="live-job">
             <div class="live-job-info">
               <div class="live-job-title">${escHtml(j.title)}</div>
-              <div class="live-job-meta">${j.category}${date ? ' · ' + date : ''}</div>
+              <div class="live-job-meta">${escHtml(j.category)}${date ? ' &middot; ' + date : ''}</div>
             </div>
-            <a class="live-job-link" href="${j.link}" target="_blank" rel="noopener">View ↗</a>
+            <a class="live-job-link" href="${j.link}" target="_blank" rel="noopener">View</a>
           </div>`;
       }).join('');
     }
+
+    setLastUpdated();
   } catch {
     grid.innerHTML = '<div class="error-box" style="grid-column:1/-1">Could not load jobs. Make sure the server is running.</div>';
   }
 }
 
+function setLastUpdated() {
+  const el = document.getElementById('last-updated');
+  if (el) el.textContent = 'Updated just now';
+  let mins = 0;
+  clearInterval(autoRefreshId);
+  autoRefreshId = setInterval(() => {
+    mins++;
+    if (el) el.textContent = `Updated ${mins} min${mins > 1 ? 's' : ''} ago`;
+    if (mins >= 10) {
+      loadJobs(currentCat);
+    }
+  }, 60000);
+}
+
+function refreshJobs() {
+  loadJobs(currentCat);
+}
+
 function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 // ── Startup Analysis ─────────────────────────────────────────────────────────
@@ -219,75 +243,15 @@ async function runStartup() {
   const btn = document.getElementById('startup-btn');
 
   if (!url) { toast('Please enter a startup URL'); return; }
-  if (!/^https?:\/\/.+/.test(url)) { toast('Please enter a valid URL starting with http:// or https://'); return; }
+  if (!/^https?:\/\/.+/.test(url)) { toast('Please enter a valid URL starting with https://'); return; }
 
-  const fd = new FormData();
-  fd.append('url', url);
-
-  // Use JSON for this endpoint
   btn.disabled = true;
-  btn.innerHTML = '<span class="btn-icon">⏳</span> Analyzing…';
-
-  const out     = document.getElementById('startup-output');
-  const actions = document.getElementById('startup-actions');
-
-  out.innerHTML = `
-    <div class="thinking-indicator">
-      <div class="thinking-dots"><span></span><span></span><span></span></div>
-      Fetching website and running Sequoia-style analysis…
-    </div>`;
-  actions.style.display = 'none';
-
-  let fullText = '';
-  let firstText = false;
-
+  btn.textContent = 'Analyzing...';
   try {
-    const response = await fetch('/api/startup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url })
-    });
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      throw new Error(err.error || `HTTP ${response.status}`);
-    }
-
-    const reader  = response.body.getReader();
-    const decoder = new TextDecoder();
-    let   buffer  = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop();
-
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const raw = line.slice(6).trim();
-        if (raw === '[DONE]') { reader.cancel(); break; }
-
-        let msg;
-        try { msg = JSON.parse(raw); } catch { continue; }
-
-        if (msg.error) throw new Error(msg.error);
-        if (msg.text) {
-          if (!firstText) { out.innerHTML = ''; firstText = true; }
-          fullText += msg.text;
-          out.innerHTML = `<div class="md-output">${marked.parse(fullText)}</div>`;
-          out.scrollTop = out.scrollHeight;
-        }
-      }
-    }
-
-    if (fullText) actions.style.display = 'flex';
-  } catch (err) {
-    out.innerHTML = `<div class="error-box">⚠️ ${err.message}</div>`;
+    await streamRequest('/api/startup', { url }, 'startup-output', 'startup-actions', true);
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<span class="btn-icon">🚀</span> Analyze This Startup';
+    btn.textContent = 'Analyze This Startup';
   }
 }
 
@@ -295,8 +259,8 @@ async function runStartup() {
 
 function copyOutput(id) {
   const el = document.getElementById(id);
-  const text = el.innerText || el.textContent;
-  navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard ✓'));
+  navigator.clipboard.writeText(el.innerText || el.textContent)
+    .then(() => toast('Copied to clipboard'));
 }
 
 let toastTimer;

@@ -166,6 +166,14 @@ const JOB_SEARCHES = {
     { label: 'Strategy Consultant', kw: 'strategy+consultant+entry+level' },
     { label: 'Business Analyst (Consulting Firm)', kw: 'business+analyst+consulting+firm' },
     { label: 'Operations Consultant', kw: 'operations+consultant' },
+  ],
+  rotational: [
+    { label: 'Startup Rotational Program', kw: 'rotational+program+startup+entry+level' },
+    { label: 'New Grad Associate Program', kw: 'new+graduate+associate+program+tech' },
+    { label: 'Early Career Rotational', kw: 'early+career+rotational+program' },
+    { label: 'Generalist Rotation (Startup)', kw: 'generalist+rotation+startup' },
+    { label: 'BizOps Rotation / New Grad', kw: 'business+operations+rotation+new+grad' },
+    { label: 'Venture-Backed New Grad', kw: 'new+grad+operations+venture+backed+startup' },
   ]
 };
 

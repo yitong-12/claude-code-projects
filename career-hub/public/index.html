@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Career Hub — AI-Powered Career Tools</title>
+  <title>Mission Mercury</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
@@ -11,39 +11,31 @@
 
 <header>
   <div class="brand">
-    <span class="brand-icon">⚡</span>
-    <span class="brand-name">Career Hub</span>
-    <span class="brand-sub">AI-Powered</span>
+    <span class="brand-name">Mission Mercury</span>
   </div>
   <nav class="tabs">
-    <button class="tab active" data-tab="review">
-      <span>📋</span> Resume Review
-    </button>
-    <button class="tab" data-tab="redline">
-      <span>✏️</span> Redline Resume
-    </button>
-    <button class="tab" data-tab="jobs">
-      <span>🔍</span> Job Finder
-    </button>
-    <button class="tab" data-tab="startup">
-      <span>🚀</span> Startup Analysis
-    </button>
+    <button class="tab active" data-tab="review">Resume Review</button>
+    <button class="tab" data-tab="redline">Resume Edits</button>
+    <button class="tab" data-tab="jobs">Open Roles</button>
+    <button class="tab" data-tab="startup">Startup Analysis</button>
   </nav>
 </header>
 
 <main>
 
-  <!-- ── Resume Review ──────────────────────────────────────────── -->
+  <!-- Resume Review -->
   <section id="tab-review" class="tab-content active">
     <div class="split-layout">
       <div class="panel panel-form">
         <h2>Resume Review</h2>
-        <p class="panel-desc">Act as a 10-year HR head — get a must-hire verdict with specific gaps and improvement plan.</p>
+        <p class="panel-desc">Get a must-hire verdict from a 10-year HR head — with exact gaps and a ranked improvement plan.</p>
 
         <div class="form-group">
           <label>Your Resume (PDF)</label>
           <div class="dropzone" id="review-drop" data-input="review-file">
-            <div class="drop-icon">📄</div>
+            <div class="drop-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
             <div class="drop-text">Drop PDF here or <span class="drop-link">browse</span></div>
             <div class="drop-name" id="review-filename"></div>
             <input type="file" id="review-file" accept=".pdf" hidden>
@@ -51,12 +43,12 @@
         </div>
 
         <div class="form-group">
-          <label>Job Description <span class="muted">(paste the full JD)</span></label>
-          <textarea id="review-jd" class="textarea" rows="10" placeholder="Paste the full job description here — the more detail, the sharper the analysis…"></textarea>
+          <label>Job Description <span class="label-note">paste the full JD</span></label>
+          <textarea id="review-jd" class="textarea" rows="10" placeholder="Paste the full job description here — the more detail, the sharper the analysis."></textarea>
         </div>
 
         <button class="btn btn-primary" id="review-btn" onclick="runReview()">
-          <span class="btn-icon">🎯</span> Analyze My Resume
+          Analyze My Resume
         </button>
       </div>
 
@@ -64,30 +56,34 @@
         <div class="output-header">
           <span class="output-title">HR Analysis</span>
           <div class="output-actions" id="review-actions" style="display:none">
-            <button class="btn-icon-sm" onclick="copyOutput('review-output')" title="Copy">📋</button>
+            <button class="btn-copy" onclick="copyOutput('review-output')">Copy</button>
           </div>
         </div>
         <div class="output-body" id="review-output">
           <div class="output-placeholder">
-            <div class="placeholder-icon">📋</div>
-            <p>Your HR head's verdict will appear here</p>
+            <div class="placeholder-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            </div>
+            <p>Your analysis will appear here</p>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ── Redline Resume ─────────────────────────────────────────── -->
+  <!-- Resume Edits -->
   <section id="tab-redline" class="tab-content">
     <div class="split-layout">
       <div class="panel panel-form">
-        <h2>Redline Resume</h2>
-        <p class="panel-desc">Get your resume rewritten line-by-line to become a must-hire for this specific role.</p>
+        <h2>Resume Edits</h2>
+        <p class="panel-desc">Get your resume rewritten line-by-line for the specific role — with tracked changes showing exactly what moved and why.</p>
 
         <div class="form-group">
           <label>Your Resume (PDF)</label>
           <div class="dropzone" id="redline-drop" data-input="redline-file">
-            <div class="drop-icon">📄</div>
+            <div class="drop-icon-wrap">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
             <div class="drop-text">Drop PDF here or <span class="drop-link">browse</span></div>
             <div class="drop-name" id="redline-filename"></div>
             <input type="file" id="redline-file" accept=".pdf" hidden>
@@ -96,86 +92,90 @@
 
         <div class="form-group">
           <label>Job Description</label>
-          <textarea id="redline-jd" class="textarea" rows="10" placeholder="Paste the full job description here…"></textarea>
+          <textarea id="redline-jd" class="textarea" rows="10" placeholder="Paste the full job description here."></textarea>
         </div>
 
         <button class="btn btn-primary" id="redline-btn" onclick="runRedline()">
-          <span class="btn-icon">✏️</span> Redline My Resume
+          Edit My Resume
         </button>
       </div>
 
       <div class="panel panel-output">
         <div class="output-header">
-          <span class="output-title">Redlined Resume</span>
+          <span class="output-title">Edited Resume</span>
           <div class="output-actions" id="redline-actions" style="display:none">
-            <button class="btn-icon-sm" onclick="copyOutput('redline-output')" title="Copy">📋</button>
+            <button class="btn-copy" onclick="copyOutput('redline-output')">Copy</button>
           </div>
         </div>
         <div class="output-body" id="redline-output">
           <div class="output-placeholder">
-            <div class="placeholder-icon">✏️</div>
-            <p>Your rewritten resume with tracked changes will appear here</p>
+            <div class="placeholder-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </div>
+            <p>Your edited resume with tracked changes will appear here</p>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ── Job Finder ─────────────────────────────────────────────── -->
+  <!-- Open Roles -->
   <section id="tab-jobs" class="tab-content">
     <div class="jobs-layout">
       <div class="jobs-header">
-        <h2>Job Finder</h2>
-        <p class="panel-desc">Curated searches for your target roles — opens directly on LinkedIn and Indeed with last-week filters applied.</p>
+        <div class="jobs-header-top">
+          <div>
+            <h2>Open Roles</h2>
+            <p class="panel-desc">Curated searches for your target roles — opens directly on LinkedIn and Indeed with last-week filters applied.</p>
+          </div>
+          <div class="refresh-wrap">
+            <span class="last-updated" id="last-updated"></span>
+            <button class="btn-refresh" id="refresh-btn" onclick="refreshJobs()">Refresh</button>
+          </div>
+        </div>
 
         <div class="category-tabs">
-          <button class="cat-tab active" data-cat="finance" onclick="loadJobs('finance', this)">
-            💰 Finance & Investing
-          </button>
-          <button class="cat-tab" data-cat="operations" onclick="loadJobs('operations', this)">
-            ⚙️ Biz Ops & Product
-          </button>
-          <button class="cat-tab" data-cat="consulting" onclick="loadJobs('consulting', this)">
-            📊 Consulting
-          </button>
+          <button class="cat-tab active" data-cat="finance" onclick="loadJobs('finance', this)">Finance & Investing</button>
+          <button class="cat-tab" data-cat="operations" onclick="loadJobs('operations', this)">Biz Ops & Product</button>
+          <button class="cat-tab" data-cat="consulting" onclick="loadJobs('consulting', this)">Consulting</button>
+          <button class="cat-tab" data-cat="rotational" onclick="loadJobs('rotational', this)">Rotational Programs</button>
         </div>
       </div>
 
       <div class="jobs-grid-wrapper">
         <div class="section-label">Search on LinkedIn & Indeed</div>
         <div class="jobs-grid" id="jobs-grid">
-          <div class="jobs-loading">Loading searches…</div>
+          <div class="jobs-loading">Loading searches...</div>
         </div>
 
         <div class="section-label" id="live-label" style="display:none">Live Postings (from Indeed)</div>
         <div class="live-jobs" id="live-jobs"></div>
 
         <div class="jobs-note">
-          <span>ℹ️</span>
-          <p>LinkedIn blocks automated scraping, so these are curated search links that open directly in a new tab with recency filters applied. For daily alerts, set up a LinkedIn Job Alert for each search.</p>
+          <p>LinkedIn blocks automated scraping, so these open curated search pages with recency filters applied. To get daily alerts, set up a LinkedIn Job Alert for any search. The page auto-refreshes every 10 minutes.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ── Startup Analysis ───────────────────────────────────────── -->
+  <!-- Startup Analysis -->
   <section id="tab-startup" class="tab-content">
     <div class="split-layout">
       <div class="panel panel-form">
         <h2>Startup Analysis</h2>
-        <p class="panel-desc">Think like a Sequoia senior partner. Paste any startup's website URL for a thorough VC-style analysis.</p>
+        <p class="panel-desc">Paste any startup's website URL for a Sequoia-style VC analysis — market sizing, competitive moat, red flags, and a full investment thesis.</p>
 
         <div class="form-group">
           <label>Startup Website URL</label>
-          <input type="url" id="startup-url" class="input" placeholder="https://acme.com" />
+          <input type="url" id="startup-url" class="input" placeholder="https://example.com" />
         </div>
 
-        <div class="sequoia-note">
-          <strong>What you'll get:</strong> Market sizing, competitive moat, team assessment, red flags, the 5 first-meeting questions, and a full investment thesis — the way Sequoia would evaluate it.
+        <div class="startup-note">
+          <strong>What you get:</strong> Scorecard across 7 dimensions, red flags, the 5 first-meeting partner questions, real TAM analysis, competitive moat assessment, and an investment thesis — the way Sequoia would evaluate it.
         </div>
 
         <button class="btn btn-primary" id="startup-btn" onclick="runStartup()">
-          <span class="btn-icon">🚀</span> Analyze This Startup
+          Analyze This Startup
         </button>
       </div>
 
@@ -183,13 +183,15 @@
         <div class="output-header">
           <span class="output-title">Sequoia Analysis</span>
           <div class="output-actions" id="startup-actions" style="display:none">
-            <button class="btn-icon-sm" onclick="copyOutput('startup-output')" title="Copy">📋</button>
+            <button class="btn-copy" onclick="copyOutput('startup-output')">Copy</button>
           </div>
         </div>
         <div class="output-body" id="startup-output">
           <div class="output-placeholder">
-            <div class="placeholder-icon">🚀</div>
-            <p>Your Sequoia-style startup analysis will appear here</p>
+            <div class="placeholder-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <p>Your startup analysis will appear here</p>
           </div>
         </div>
       </div>
@@ -198,7 +200,6 @@
 
 </main>
 
-<!-- Toast notification -->
 <div class="toast" id="toast"></div>
 
 <script src="app.js"></script>
