@@ -4,13 +4,137 @@ const express = require('express');
 const multer = require('multer');
 const pdfParse = require('pdf-parse');
 const Anthropic = require('@anthropic-ai/sdk');
+const cookieParser = require('cookie-parser');
 const path = require('path');
 
 const app = express();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+const ACCESS_PASSWORD = process.env.ACCESS_PASSWORD || '';
+
+// ── Login page HTML ──────────────────────────────────────────────────────────
+
+function loginPage(error = false) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mission Mercury</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #e4e7ec;
+      border-radius: 20px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .title { font-size: 1.2rem; font-weight: 700; color: #111827; letter-spacing: -0.03em; text-align: center; }
+    .subtitle { font-size: 0.82rem; color: #6b7280; text-align: center; margin-top: 0.25rem; }
+    label { font-size: 0.78rem; font-weight: 600; color: #6b7280; display: block; margin-bottom: 0.4rem; }
+    input[type="password"] {
+      width: 100%;
+      background: #f7f8fa;
+      border: 1px solid #e4e7ec;
+      border-radius: 12px;
+      color: #111827;
+      font-family: inherit;
+      font-size: 0.9rem;
+      padding: 0.7rem 0.9rem;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input[type="password"]:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+    button {
+      width: 100%;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.875rem;
+      padding: 0.72rem;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 0.5rem;
+    }
+    button:hover { background: #1d4ed8; }
+    .error {
+      background: rgba(220,38,38,0.07);
+      border: 1px solid rgba(220,38,38,0.2);
+      border-radius: 10px;
+      padding: 0.65rem 0.9rem;
+      color: #dc2626;
+      font-size: 0.82rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div>
+      <div class="title">Mission Mercury</div>
+      <div class="subtitle">Enter your password to continue</div>
+    </div>
+    ${error ? '<div class="error">Incorrect password — try again</div>' : ''}
+    <form method="POST" action="/login">
+      <label>Password</label>
+      <input type="password" name="password" autofocus placeholder="Enter password" />
+      <button type="submit">Continue</button>
+    </form>
+  </div>
+</body>
+</html>`;
+}
+
+// ── Middleware ───────────────────────────────────────────────────────────────
+
+app.use(cookieParser());
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+// Auth gate — runs before everything else
+app.use((req, res, next) => {
+  if (!ACCESS_PASSWORD) return next();              // no password set = open
+  if (req.path === '/login') return next();          // always allow login page
+  if (req.cookies.mm_auth === ACCESS_PASSWORD) return next();
+  return res.redirect('/login');
+});
+
+// Login routes
+app.get('/login', (req, res) => {
+  if (req.cookies.mm_auth === ACCESS_PASSWORD) return res.redirect('/');
+  res.send(loginPage(false));
+});
+
+app.post('/login', (req, res) => {
+  if (req.body.password === ACCESS_PASSWORD) {
+    res.cookie('mm_auth', ACCESS_PASSWORD, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 30 * 24 * 60 * 60 * 1000  // 30 days
+    });
+    return res.redirect('/');
+  }
+  res.send(loginPage(true));
+});
+
+// Protected static files
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ── System prompts (prompt-cached) ──────────────────────────────────────────
